@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Highlight App - Làm nổi vùng ảnh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .selection-area {
+        border: 2px solid #3b82f6;
+        position: absolute;
+        pointer-events: none;
+        border-radius: 10px;
+        z-index: 10;
+      }
+      .canvas-container {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+        max-height: 80vh;
+      }
+      .toolbar {
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 16px;
+        position: sticky;
+        top: 20px;
+        z-index: 20;
+      }
+      .color-swatch {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+      }
+      .color-swatch.active {
+        border-color: #fff;
+        transform: scale(1.1);
+      }
+      .slider-container {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 12px;
+      }
+      .drop-zone {
+        border: 2px dashed #94a3b8;
+        border-radius: 12px;
+        transition: all 0.3s;
+      }
+      .drop-zone.dragover {
+        border-color: #3b82f6;
+        background-color: rgba(59, 130, 246, 0.1);
+      }
+      input[type="range"] {
+        background: transparent;
+        cursor: pointer;
+      }
+      input[type="range"]::-webkit-slider-track {
+        background: rgba(255, 255, 255, 0.2);
+        height: 4px;
+        border-radius: 2px;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #3b82f6;
+        cursor: pointer;
+        border: 2px solid #fff;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+      <!-- Header -->
+      <header class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">🎯 Highlight App</h1>
+        <p class="text-gray-600">Làm nổi vùng quan trọng trên ảnh của bạn</p>
+      </header>
+
+      <!-- Upload Zone -->
+      <div
+        id="uploadZone"
+        class="drop-zone bg-white p-8 text-center mb-6 cursor-pointer"
+      >
+        <div class="space-y-4">
+          <div class="text-6xl">📸</div>
+          <div>
+            <p class="text-lg font-medium text-gray-700 mb-2">
+              Kéo thả ảnh vào đây hoặc click để chọn
+            </p>
+            <p class="text-sm text-gray-500">
+              Hỗ trợ PNG, JPEG, WebP (tối đa 30MP)
+            </p>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" class="hidden" />
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div id="mainContent" class="hidden">
+        <div class="grid lg:grid-cols-4 gap-6">
+          <!-- Toolbar -->
+          <div class="lg:col-span-1">
+            <div class="toolbar space-y-4">
+              <!-- Color Picker -->
+              <div class="text-white">
+                <h3 class="font-medium mb-3 text-sm uppercase tracking-wider">
+                  Màu khung
+                </h3>
+                <div class="flex gap-2 mb-3">
+                  <div
+                    class="color-swatch active"
+                    style="background-color: #3b82f6"
+                    data-color="#3b82f6"
+                  ></div>
+                  <div
+                    class="color-swatch"
+                    style="background-color: #ef4444"
+                    data-color="#ef4444"
+                  ></div>
+                  <div
+                    class="color-swatch"
+                    style="background-color: #22c55e"
+                    data-color="#22c55e"
+                  ></div>
+                  <div
+                    class="color-swatch"
+                    style="background-color: #f59e0b"
+                    data-color="#f59e0b"
+                  ></div>
+                  <div
+                    class="color-swatch"
+                    style="background-color: #8b5cf6"
+                    data-color="#8b5cf6"
+                  ></div>
+                </div>
+                <input
+                  type="color"
+                  id="customColor"
+                  value="#3b82f6"
+                  class="w-full h-10 rounded-md cursor-pointer"
+                />
+              </div>
+
+              <!-- Darkness Control -->
+              <div class="slider-container">
+                <label class="block text-white text-sm font-medium mb-2">
+                  Độ tối overlay: <span id="darknessValue">0.7</span>
+                </label>
+                <input
+                  type="range"
+                  id="darknessSlider"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value="0.7"
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Blur Control -->
+              <div class="slider-container">
+                <label class="block text-white text-sm font-medium mb-2">
+                  Độ mờ: <span id="blurValue">0</span>px
+                </label>
+                <input
+                  type="range"
+                  id="blurSlider"
+                  min="0"
+                  max="10"
+                  step="0.5"
+                  value="0"
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Border Width -->
+              <div class="slider-container">
+                <label class="block text-white text-sm font-medium mb-2">
+                  Độ dày viền: <span id="borderWidthValue">2</span>px
+                </label>
+                <input
+                  type="range"
+                  id="borderWidthSlider"
+                  min="0"
+                  max="8"
+                  step="1"
+                  value="2"
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Border Radius -->
+              <div class="slider-container">
+                <label class="block text-white text-sm font-medium mb-2">
+                  Bo góc: <span id="borderRadiusValue">10</span>px
+                </label>
+                <input
+                  type="range"
+                  id="borderRadiusSlider"
+                  min="0"
+                  max="50"
+                  step="1"
+                  value="10"
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="space-y-3 pt-4">
+                <button
+                  id="resetBtn"
+                  class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
+                >
+                  🔄 Reset
+                </button>
+                <button
+                  id="exportBtn"
+                  class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  💾 Xuất ảnh (PNG)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Canvas Area -->
+          <div class="lg:col-span-3">
+            <div class="bg-white rounded-lg shadow-sm p-4">
+              <div class="canvas-container mx-auto" id="canvasContainer">
+                <canvas
+                  id="canvas"
+                  class="max-w-full max-h-[80vh] object-contain border border-gray-200 rounded-lg cursor-crosshair"
+                ></canvas>
+                <div id="selectionArea" class="selection-area hidden"></div>
+              </div>
+              <div
+                class="mt-4 text-center text-sm text-gray-500"
+                id="imageInfo"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div
+        id="loadingOverlay"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+      >
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+          <div
+            class="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+          ></div>
+          <p class="text-gray-700">Đang xử lý ảnh...</p>
+        </div>
+      </div>
+
+      <!-- Warning Modal -->
+      <div
+        id="warningModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+      >
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-md mx-4">
+          <div class="text-center">
+            <div class="text-4xl mb-4">⚠️</div>
+            <h3 class="text-lg font-semibold mb-2">Ảnh có kích thước lớn</h3>
+            <p class="text-gray-600 mb-4">
+              Ảnh của bạn có độ phân giải cao (>30MP). Ứng dụng sẽ dùng preview
+              để thao tác nhưng vẫn xuất ảnh ở độ phân giải gốc.
+            </p>
+            <button
+              id="continueBtn"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+            >
+              Tiếp tục
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
