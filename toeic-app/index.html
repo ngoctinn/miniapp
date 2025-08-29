@@ -1,0 +1,1154 @@
+<!-- BUILD INFO: single-file TOEIC Part 5 app, Tailwind CDN, vanilla JS -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TOEIC Part 5 - Luyện Ngữ Pháp & Từ Vựng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .high-contrast .correct {
+        background: repeating-linear-gradient(
+          45deg,
+          #10b981,
+          #10b981 10px,
+          #065f46 10px,
+          #065f46 20px
+        );
+      }
+      .high-contrast .incorrect {
+        background: repeating-linear-gradient(
+          45deg,
+          #ef4444,
+          #ef4444 10px,
+          #991b1b 10px,
+          #991b1b 20px
+        );
+      }
+
+      /* Enhanced styling for correct/incorrect answers */
+      .correct {
+        background-color: #dcfce7 !important;
+        border: 2px solid #16a34a !important;
+        color: #166534 !important;
+      }
+
+      .incorrect {
+        background-color: #fef2f2 !important;
+        border: 2px solid #dc2626 !important;
+        color: #991b1b !important;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 1024px) {
+        .grid-cols-1.lg\\:grid-cols-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Sticky right column for better UX */
+      @media (min-width: 1024px) {
+        main > div > div:last-child {
+          position: sticky;
+          top: 2rem;
+          height: fit-content;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 py-4">
+        <h1 class="text-2xl font-bold text-blue-600 text-center mb-2">
+          TOEIC Part 5 - Luyện Ngữ Pháp & Từ Vựng
+        </h1>
+        <div class="flex justify-between items-center text-sm text-gray-600">
+          <span id="progress">Câu 1/?</span>
+          <span id="score">Điểm: 0</span>
+          <span id="study-time">Hôm nay: 0 phút</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Left Column: Question & Controls -->
+        <div class="space-y-6">
+          <!-- Question Card -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="mb-4">
+              <p
+                id="question-text"
+                class="text-lg font-medium text-gray-800 leading-relaxed"
+              ></p>
+            </div>
+
+            <!-- Options -->
+            <div id="options-container" class="space-y-3">
+              <!-- Options will be rendered here -->
+            </div>
+
+            <!-- Answer Status -->
+            <div
+              id="answer-status"
+              class="mt-4 p-3 rounded-lg hidden"
+              aria-live="polite"
+            >
+              <!-- Status will be shown here -->
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="flex flex-wrap gap-3 justify-center">
+            <button
+              id="check-btn"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Check Answer
+            </button>
+            <button
+              id="next-btn"
+              class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Next Question
+            </button>
+            <button
+              id="hint-btn"
+              class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-medium"
+            >
+              Hint
+            </button>
+            <button
+              id="flag-btn"
+              class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium"
+            >
+              🚩 Flag
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Explanation & Stats -->
+        <div class="space-y-6">
+          <!-- Explanation Panel -->
+          <div
+            id="explanation-panel"
+            class="bg-blue-50 border border-blue-200 rounded-lg p-4 hidden"
+          >
+            <h3 class="font-semibold text-blue-800 mb-2">Giải thích:</h3>
+            <div id="explanation-content"></div>
+          </div>
+
+          <!-- Stats -->
+          <div class="bg-white rounded-lg shadow-md p-4">
+            <h3 class="font-semibold text-gray-800 mb-3">Thống kê</h3>
+            <div class="grid grid-cols-2 gap-4 text-center text-sm">
+              <div>
+                <div
+                  class="text-2xl font-bold text-blue-600"
+                  id="total-answered"
+                >
+                  0
+                </div>
+                <div class="text-gray-600">Đã làm</div>
+              </div>
+              <div>
+                <div
+                  class="text-2xl font-bold text-green-600"
+                  id="correct-count"
+                >
+                  0
+                </div>
+                <div class="text-gray-600">Đúng</div>
+              </div>
+              <div>
+                <div
+                  class="text-2xl font-bold text-purple-600"
+                  id="first-try-rate"
+                >
+                  0%
+                </div>
+                <div class="text-gray-600">Lần đầu đúng</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-orange-600" id="avg-time">
+                  0s
+                </div>
+                <div class="text-gray-600">TB/câu</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div
+      id="settings-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+      >
+        <h2 class="text-xl font-bold mb-4 text-gray-800">⚙️ Cài đặt</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700"
+              >Chế độ:</label
+            >
+            <select
+              id="mode-select"
+              class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="practice">Practice</option>
+              <option value="review">Review</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700"
+              >Độ khó:</label
+            >
+            <select
+              id="difficulty-select"
+              class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Tất cả</option>
+              <option value="1">1 (Dễ)</option>
+              <option value="2">2</option>
+              <option value="3">3 (Trung bình)</option>
+              <option value="4">4</option>
+              <option value="5">5 (Khó)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="flex items-center text-gray-700">
+              <input
+                type="checkbox"
+                id="high-contrast"
+                class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              High Contrast Mode
+            </label>
+          </div>
+
+          <div>
+            <label class="flex items-center text-gray-700">
+              <input
+                type="checkbox"
+                id="sound-feedback"
+                class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              Âm thanh phản hồi
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700"
+              >Ngôn ngữ UI:</label
+            >
+            <select
+              id="language-select"
+              class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="vi">Tiếng Việt</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-6 flex gap-3">
+          <button
+            id="close-settings"
+            class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded transition-colors duration-200"
+          >
+            Đóng
+          </button>
+          <button
+            id="apply-settings"
+            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded transition-colors duration-200"
+          >
+            Áp dụng
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t py-4 mt-8">
+      <div class="max-w-7xl mx-auto px-4 flex flex-wrap gap-3 justify-center">
+        <button
+          id="settings-btn"
+          class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
+        >
+          ⚙️ Cài đặt
+        </button>
+        <button
+          id="export-btn"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >
+          📤 Export
+        </button>
+        <button
+          id="import-btn"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+        >
+          📥 Import
+        </button>
+        <button
+          id="reset-btn"
+          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+        >
+          🔄 Reset
+        </button>
+      </div>
+      <input type="file" id="import-file" accept=".json" class="hidden" />
+    </footer>
+
+    <script src="./questions.js"></script>
+    <script>
+      // App Configuration and Data
+      const APP_CONFIG = {
+        name: "TOEIC Part 5 Trainer",
+        version: "1.0.0",
+        questions: TOEIC_QUESTIONS, // Load from questions.js
+      };
+
+      // Load questions from JS file (already loaded)
+      async function loadQuestions() {
+        // Questions are already loaded from questions.js
+        return true;
+      }
+
+      // App State Management
+      class AppState {
+        constructor() {
+          this.currentQuestionIndex = 0;
+          this.selectedAnswer = null;
+          this.isAnswered = false;
+          this.score = 0;
+          this.totalAnswered = 0;
+          this.correctCount = 0;
+          this.firstTryCorrect = 0;
+          this.questionStartTime = 0;
+          this.totalTime = 0;
+          this.sessionSeed = Math.random();
+          this.mode = "practice";
+          this.settings = {
+            highContrast: false,
+            soundFeedback: false,
+            language: "vi",
+            difficulty: "",
+            grammarTags: [],
+            vocabTags: [],
+          };
+          this.questionHistory = [];
+          this.flaggedQuestions = new Set();
+          this.reviewSchedule = {};
+          this.filteredQuestions = [];
+          this.shuffledQuestions = [];
+          this.usedHint = false;
+        }
+
+        // Shuffle questions with seed for consistent order in session
+        shuffleQuestions() {
+          let questions = [...this.filteredQuestions];
+          let seed = this.sessionSeed;
+
+          for (let i = questions.length - 1; i > 0; i--) {
+            seed = (seed * 9301 + 49297) % 233280;
+            const j = Math.floor((seed / 233280) * (i + 1));
+            [questions[i], questions[j]] = [questions[j], questions[i]];
+          }
+
+          this.shuffledQuestions = questions;
+        }
+
+        // Shuffle answer options with seed
+        shuffleOptions(question) {
+          // Return question as-is without shuffling options
+          return question;
+        }
+
+        filterQuestions() {
+          this.filteredQuestions = APP_CONFIG.questions.filter((q) => {
+            if (
+              this.settings.difficulty &&
+              q.difficulty.toString() !== this.settings.difficulty
+            ) {
+              return false;
+            }
+
+            if (this.mode === "review") {
+              // Show flagged questions or questions due for review
+              const isDue = this.isQuestionDueForReview(q.id);
+              return this.flaggedQuestions.has(q.id) || isDue;
+            }
+
+            return true;
+          });
+
+          if (this.filteredQuestions.length === 0) {
+            this.filteredQuestions = [...APP_CONFIG.questions];
+          }
+
+          this.shuffleQuestions();
+        }
+
+        isQuestionDueForReview(questionId) {
+          const schedule = this.reviewSchedule[questionId];
+          if (!schedule) return false;
+
+          const now = Date.now();
+          return now >= schedule.nextReview;
+        }
+
+        scheduleReview(questionId, correct) {
+          const now = Date.now();
+          const schedule = this.reviewSchedule[questionId] || {
+            interval: 1,
+            reviews: 0,
+          };
+
+          if (correct) {
+            // Increase interval: 1 -> 3 -> 7 days
+            schedule.interval =
+              schedule.reviews === 0 ? 3 : schedule.reviews === 1 ? 7 : 14;
+            schedule.reviews++;
+          } else {
+            // Reset to 1 day if answered incorrectly
+            schedule.interval = 1;
+            schedule.reviews = 0;
+          }
+
+          schedule.nextReview = now + schedule.interval * 24 * 60 * 60 * 1000;
+          this.reviewSchedule[questionId] = schedule;
+        }
+
+        getCurrentQuestion() {
+          if (this.shuffledQuestions.length === 0) return null;
+          const original = this.shuffledQuestions[this.currentQuestionIndex];
+          return this.shuffleOptions(original);
+        }
+
+        nextQuestion() {
+          if (this.currentQuestionIndex < this.shuffledQuestions.length - 1) {
+            this.currentQuestionIndex++;
+            this.selectedAnswer = null;
+            this.isAnswered = false;
+            this.usedHint = false;
+            this.questionStartTime = Date.now();
+            return true;
+          }
+          return false;
+        }
+
+        recordAnswer(selectedOption, correct) {
+          this.selectedAnswer = selectedOption;
+          this.isAnswered = true;
+          this.totalAnswered++;
+
+          const timeTaken = Date.now() - this.questionStartTime;
+          this.totalTime += timeTaken;
+
+          const currentQ = this.getCurrentQuestion();
+
+          if (correct) {
+            this.correctCount++;
+            if (!this.usedHint) {
+              this.score += 1;
+              this.firstTryCorrect++;
+            } else {
+              this.score += 0.5;
+            }
+          }
+
+          // Record history
+          this.questionHistory.push({
+            questionId: currentQ.id,
+            selectedAnswer: selectedOption,
+            correctAnswer: currentQ.answer,
+            correct: correct,
+            usedHint: this.usedHint,
+            timeTaken: timeTaken,
+            timestamp: Date.now(),
+          });
+
+          // Schedule review
+          this.scheduleReview(currentQ.id, correct);
+        }
+
+        getStats() {
+          return {
+            totalAnswered: this.totalAnswered,
+            correctCount: this.correctCount,
+            firstTryRate:
+              this.totalAnswered > 0
+                ? Math.round((this.firstTryCorrect / this.totalAnswered) * 100)
+                : 0,
+            avgTime:
+              this.totalAnswered > 0
+                ? Math.round(this.totalTime / this.totalAnswered / 1000)
+                : 0,
+            score: this.score,
+          };
+        }
+      }
+
+      // Storage Management
+      class StorageManager {
+        static STORAGE_KEY = "toeic_part5_data";
+
+        static save(state) {
+          const data = {
+            settings: state.settings,
+            questionHistory: state.questionHistory,
+            flaggedQuestions: Array.from(state.flaggedQuestions),
+            reviewSchedule: state.reviewSchedule,
+            stats: {
+              totalAnswered: state.totalAnswered,
+              correctCount: state.correctCount,
+              firstTryCorrect: state.firstTryCorrect,
+              totalTime: state.totalTime,
+              score: state.score,
+            },
+            lastSaved: Date.now(),
+          };
+
+          try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+          } catch (e) {
+            console.error("Failed to save data:", e);
+          }
+        }
+
+        static load() {
+          try {
+            const data = localStorage.getItem(this.STORAGE_KEY);
+            return data ? JSON.parse(data) : null;
+          } catch (e) {
+            console.error("Failed to load data:", e);
+            return null;
+          }
+        }
+
+        static export() {
+          const data = this.load();
+          if (!data) return null;
+
+          return {
+            ...data,
+            exportDate: Date.now(),
+            appVersion: APP_CONFIG.version,
+          };
+        }
+
+        static import(data) {
+          try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+            return true;
+          } catch (e) {
+            console.error("Failed to import data:", e);
+            return false;
+          }
+        }
+
+        static reset() {
+          try {
+            localStorage.removeItem(this.STORAGE_KEY);
+            return true;
+          } catch (e) {
+            console.error("Failed to reset data:", e);
+            return false;
+          }
+        }
+      }
+
+      // Audio Feedback
+      class AudioManager {
+        constructor() {
+          this.audioContext = null;
+          this.enabled = false;
+        }
+
+        enable() {
+          if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext ||
+              window.webkitAudioContext)();
+          }
+          this.enabled = true;
+        }
+
+        disable() {
+          this.enabled = false;
+        }
+
+        playCorrect() {
+          if (!this.enabled || !this.audioContext) return;
+          this.playTone(523.25, 0.2); // C5 note
+        }
+
+        playIncorrect() {
+          if (!this.enabled || !this.audioContext) return;
+          this.playTone(220, 0.3); // A3 note
+        }
+
+        playTone(frequency, duration) {
+          const oscillator = this.audioContext.createOscillator();
+          const gainNode = this.audioContext.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(this.audioContext.destination);
+
+          oscillator.frequency.setValueAtTime(
+            frequency,
+            this.audioContext.currentTime
+          );
+          oscillator.type = "sine";
+
+          gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            this.audioContext.currentTime + duration
+          );
+
+          oscillator.start(this.audioContext.currentTime);
+          oscillator.stop(this.audioContext.currentTime + duration);
+        }
+      }
+
+      // Main Application Class
+      class ToeicApp {
+        constructor() {
+          this.state = new AppState();
+          this.audioManager = new AudioManager();
+          this.startTime = Date.now();
+
+          this.initializeElements();
+          this.loadSavedData();
+          this.setupEventListeners();
+          this.initializeApp();
+        }
+
+        async initializeApp() {
+          const loaded = await loadQuestions();
+          if (!loaded) {
+            alert(
+              "Không thể tải dữ liệu câu hỏi. Vui lòng kiểm tra file questions.json"
+            );
+            return;
+          }
+          this.start();
+        }
+
+        initializeElements() {
+          // Get DOM elements
+          this.elements = {
+            progress: document.getElementById("progress"),
+            score: document.getElementById("score"),
+            studyTime: document.getElementById("study-time"),
+            questionText: document.getElementById("question-text"),
+            optionsContainer: document.getElementById("options-container"),
+            answerStatus: document.getElementById("answer-status"),
+            checkBtn: document.getElementById("check-btn"),
+            nextBtn: document.getElementById("next-btn"),
+            hintBtn: document.getElementById("hint-btn"),
+            explanationBtn: document.getElementById("explanation-btn"),
+            flagBtn: document.getElementById("flag-btn"),
+            explanationPanel: document.getElementById("explanation-panel"),
+            explanationContent: document.getElementById("explanation-content"),
+
+            // Stats
+            totalAnswered: document.getElementById("total-answered"),
+            correctCount: document.getElementById("correct-count"),
+            firstTryRate: document.getElementById("first-try-rate"),
+            avgTime: document.getElementById("avg-time"),
+
+            // Settings modal
+            settingsModal: document.getElementById("settings-modal"),
+            modeSelect: document.getElementById("mode-select"),
+            difficultySelect: document.getElementById("difficulty-select"),
+            highContrast: document.getElementById("high-contrast"),
+            soundFeedback: document.getElementById("sound-feedback"),
+            languageSelect: document.getElementById("language-select"),
+
+            // Footer buttons
+            settingsBtn: document.getElementById("settings-btn"),
+            exportBtn: document.getElementById("export-btn"),
+            importBtn: document.getElementById("import-btn"),
+            resetBtn: document.getElementById("reset-btn"),
+            importFile: document.getElementById("import-file"),
+          };
+        }
+
+        loadSavedData() {
+          const savedData = StorageManager.load();
+          if (!savedData) return;
+
+          // Load settings
+          this.state.settings = {
+            ...this.state.settings,
+            ...savedData.settings,
+          };
+
+          // Load stats
+          if (savedData.stats) {
+            Object.assign(this.state, savedData.stats);
+          }
+
+          // Load other data
+          this.state.questionHistory = savedData.questionHistory || [];
+          this.state.flaggedQuestions = new Set(
+            savedData.flaggedQuestions || []
+          );
+          this.state.reviewSchedule = savedData.reviewSchedule || {};
+
+          // Apply settings
+          this.applySettings();
+        }
+
+        setupEventListeners() {
+          // Control buttons
+          this.elements.checkBtn.addEventListener("click", () =>
+            this.checkAnswer()
+          );
+          this.elements.nextBtn.addEventListener("click", () =>
+            this.nextQuestion()
+          );
+          this.elements.hintBtn.addEventListener("click", () =>
+            this.showHint()
+          );
+          this.elements.flagBtn.addEventListener("click", () =>
+            this.toggleFlag()
+          );
+
+          // Settings
+          this.elements.settingsBtn.addEventListener("click", () =>
+            this.showSettings()
+          );
+          document
+            .getElementById("close-settings")
+            .addEventListener("click", () => this.hideSettings());
+          document
+            .getElementById("apply-settings")
+            .addEventListener("click", () => this.applySettings());
+
+          // Footer actions
+          this.elements.exportBtn.addEventListener("click", () =>
+            this.exportData()
+          );
+          this.elements.importBtn.addEventListener("click", () =>
+            this.elements.importFile.click()
+          );
+          this.elements.importFile.addEventListener("change", (e) =>
+            this.importData(e)
+          );
+          this.elements.resetBtn.addEventListener("click", () =>
+            this.resetData()
+          );
+
+          // Keyboard shortcuts
+          document.addEventListener("keydown", (e) => this.handleKeyPress(e));
+
+          // Close modal when clicking outside
+          this.elements.settingsModal.addEventListener("click", (e) => {
+            if (e.target === this.elements.settingsModal) {
+              this.hideSettings();
+            }
+          });
+
+          // Update study time every minute
+          setInterval(() => this.updateStudyTime(), 60000);
+        }
+
+        start() {
+          this.state.filterQuestions();
+          if (this.state.shuffledQuestions.length === 0) {
+            alert("Không có câu hỏi nào phù hợp với bộ lọc hiện tại!");
+            return;
+          }
+
+          this.state.currentQuestionIndex = 0;
+          this.state.questionStartTime = Date.now();
+          this.renderQuestion();
+          this.updateUI();
+        }
+
+        renderQuestion() {
+          const question = this.state.getCurrentQuestion();
+          if (!question) return;
+
+          this.elements.questionText.textContent = question.question;
+
+          // Render options
+          this.elements.optionsContainer.innerHTML = "";
+          question.options.forEach((option, index) => {
+            const letter = String.fromCharCode(65 + index); // A, B, C, D
+            const button = document.createElement("button");
+            button.className =
+              "w-full text-left p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500";
+            button.innerHTML = `<span class="font-medium text-blue-600">${letter}.</span> ${option}`;
+            button.addEventListener("click", () =>
+              this.selectOption(letter, button)
+            );
+            button.setAttribute("data-option", letter);
+            this.elements.optionsContainer.appendChild(button);
+          });
+
+          // Reset UI state
+          this.elements.answerStatus.classList.add("hidden");
+          this.elements.explanationPanel.classList.add("hidden");
+          this.elements.checkBtn.disabled = true;
+          this.elements.nextBtn.disabled = true;
+
+          // Update flag button
+          const isFlagged = this.state.flaggedQuestions.has(question.id);
+          this.elements.flagBtn.textContent = isFlagged
+            ? "🚩 Unflag"
+            : "🚩 Flag";
+        }
+
+        selectOption(option, buttonElement) {
+          if (this.state.isAnswered) return;
+
+          // Clear previous selection
+          const buttons =
+            this.elements.optionsContainer.querySelectorAll("button");
+          buttons.forEach((btn) =>
+            btn.classList.remove("bg-blue-100", "border-blue-500")
+          );
+
+          // Highlight selected option
+          buttonElement.classList.add("bg-blue-100", "border-blue-500");
+
+          this.state.selectedAnswer = option;
+          this.elements.checkBtn.disabled = false;
+        }
+
+        checkAnswer() {
+          if (!this.state.selectedAnswer || this.state.isAnswered) return;
+
+          const question = this.state.getCurrentQuestion();
+          const correct = this.state.selectedAnswer === question.answer;
+
+          this.state.recordAnswer(this.state.selectedAnswer, correct);
+
+          // Update UI
+          const buttons =
+            this.elements.optionsContainer.querySelectorAll("button");
+          buttons.forEach((btn) => {
+            const option = btn.getAttribute("data-option");
+            if (option === question.answer) {
+              btn.classList.add("correct");
+              if (this.state.settings.highContrast) {
+                btn.innerHTML = "✓ " + btn.innerHTML;
+              } else {
+                btn.innerHTML = "✅ " + btn.innerHTML;
+              }
+            } else if (option === this.state.selectedAnswer && !correct) {
+              btn.classList.add("incorrect");
+              if (this.state.settings.highContrast) {
+                btn.innerHTML = "✗ " + btn.innerHTML;
+              } else {
+                btn.innerHTML = "❌ " + btn.innerHTML;
+              }
+            }
+          });
+
+          // Show status
+          this.elements.answerStatus.classList.remove("hidden");
+          this.elements.answerStatus.innerHTML = correct
+            ? '<span class="text-green-600 font-medium">✓ Chính xác!</span>'
+            : '<span class="text-red-600 font-medium">✗ Không chính xác</span>';
+
+          // Play sound feedback
+          if (this.state.settings.soundFeedback) {
+            correct
+              ? this.audioManager.playCorrect()
+              : this.audioManager.playIncorrect();
+          }
+
+          // Automatically show explanation
+          this.showExplanation();
+
+          this.elements.checkBtn.disabled = true;
+          this.elements.nextBtn.disabled = false;
+
+          this.updateUI();
+          this.saveData();
+        }
+
+        nextQuestion() {
+          if (this.state.nextQuestion()) {
+            this.renderQuestion();
+            this.updateUI();
+          } else {
+            this.showSummary();
+          }
+        }
+
+        showHint() {
+          const question = this.state.getCurrentQuestion();
+          if (!question || this.state.isAnswered) return;
+
+          this.state.usedHint = true;
+          alert(`Gợi ý: ${question.hint}`);
+        }
+
+        showExplanation() {
+          const question = this.state.getCurrentQuestion();
+          if (!question) return;
+
+          const lang = this.state.settings.language;
+          let content = `<p class="mb-2">${question.explanation[lang]}</p>`;
+
+          if (question.distractor_notes) {
+            content +=
+              '<div class="mt-3"><strong>Phân tích các lựa chọn:</strong><ul class="list-disc ml-5 mt-1">';
+            Object.entries(question.distractor_notes).forEach(
+              ([option, note]) => {
+                content += `<li><strong>${option}:</strong> ${note}</li>`;
+              }
+            );
+            content += "</ul></div>";
+          }
+
+          this.elements.explanationContent.innerHTML = content;
+          this.elements.explanationPanel.classList.remove("hidden");
+        }
+
+        toggleExplanation() {
+          if (this.elements.explanationPanel.classList.contains("hidden")) {
+            this.showExplanation();
+          } else {
+            this.elements.explanationPanel.classList.add("hidden");
+          }
+        }
+
+        toggleFlag() {
+          const question = this.state.getCurrentQuestion();
+          if (!question) return;
+
+          if (this.state.flaggedQuestions.has(question.id)) {
+            this.state.flaggedQuestions.delete(question.id);
+            this.elements.flagBtn.textContent = "🚩 Flag";
+          } else {
+            this.state.flaggedQuestions.add(question.id);
+            this.elements.flagBtn.textContent = "🚩 Unflag";
+          }
+
+          this.saveData();
+        }
+
+        handleKeyPress(e) {
+          if (this.elements.settingsModal.style.display !== "none") return;
+
+          switch (e.key) {
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+              e.preventDefault();
+              const option = String.fromCharCode(64 + parseInt(e.key)); // 1=A, 2=B, etc.
+              const button = this.elements.optionsContainer.querySelector(
+                `[data-option="${option}"]`
+              );
+              if (button && !this.state.isAnswered) {
+                this.selectOption(option, button);
+              }
+              break;
+            case "Enter":
+              e.preventDefault();
+              if (!this.state.isAnswered && this.state.selectedAnswer) {
+                this.checkAnswer();
+              }
+              break;
+            case "n":
+            case "N":
+              e.preventDefault();
+              if (this.state.isAnswered) {
+                this.nextQuestion();
+              }
+              break;
+            case "h":
+            case "H":
+              e.preventDefault();
+              this.showHint();
+              break;
+            case "e":
+            case "E":
+              e.preventDefault();
+              this.toggleExplanation();
+              break;
+          }
+        }
+
+        updateUI() {
+          // Update progress
+          this.elements.progress.textContent = `Câu ${
+            this.state.currentQuestionIndex + 1
+          }/${this.state.shuffledQuestions.length}`;
+
+          // Update stats
+          const stats = this.state.getStats();
+          this.elements.score.textContent = `Điểm: ${stats.score}`;
+          this.elements.totalAnswered.textContent = stats.totalAnswered;
+          this.elements.correctCount.textContent = stats.correctCount;
+          this.elements.firstTryRate.textContent = `${stats.firstTryRate}%`;
+          this.elements.avgTime.textContent = `${stats.avgTime}s`;
+
+          this.updateStudyTime();
+        }
+
+        updateStudyTime() {
+          const elapsed = Math.floor((Date.now() - this.startTime) / 60000);
+          this.elements.studyTime.textContent = `Hôm nay: ${elapsed} phút`;
+        }
+
+        showSettings() {
+          // Populate current settings
+          this.elements.modeSelect.value = this.state.mode;
+          this.elements.difficultySelect.value = this.state.settings.difficulty;
+          this.elements.highContrast.checked = this.state.settings.highContrast;
+          this.elements.soundFeedback.checked =
+            this.state.settings.soundFeedback;
+          this.elements.languageSelect.value = this.state.settings.language;
+
+          this.elements.settingsModal.classList.remove("hidden");
+          this.elements.settingsModal.classList.add("flex");
+        }
+
+        hideSettings() {
+          this.elements.settingsModal.classList.add("hidden");
+          this.elements.settingsModal.classList.remove("flex");
+        }
+
+        applySettings() {
+          // Get new settings
+          this.state.mode = this.elements.modeSelect.value;
+          this.state.settings.difficulty = this.elements.difficultySelect.value;
+          this.state.settings.highContrast = this.elements.highContrast.checked;
+          this.state.settings.soundFeedback =
+            this.elements.soundFeedback.checked;
+          this.state.settings.language = this.elements.languageSelect.value;
+
+          // Apply high contrast
+          if (this.state.settings.highContrast) {
+            document.body.classList.add("high-contrast");
+          } else {
+            document.body.classList.remove("high-contrast");
+          }
+
+          // Apply sound feedback
+          if (this.state.settings.soundFeedback) {
+            this.audioManager.enable();
+          } else {
+            this.audioManager.disable();
+          }
+
+          this.hideSettings();
+          this.saveData();
+
+          // Restart with new settings
+          this.start();
+        }
+
+        showSummary() {
+          const stats = this.state.getStats();
+          const message = `
+                    Hoàn thành!
+
+                    📊 Tổng kết:
+                    • Tổng điểm: ${stats.score}
+                    • Số câu đã làm: ${stats.totalAnswered}
+                    • Số câu đúng: ${stats.correctCount}
+                    • Tỷ lệ đúng lần đầu: ${stats.firstTryRate}%
+                    • Thời gian trung bình/câu: ${stats.avgTime}s
+
+                    Bạn có muốn làm lại không?
+                `;
+
+          if (confirm(message)) {
+            this.start();
+          }
+        }
+
+        exportData() {
+          const data = StorageManager.export();
+          if (!data) {
+            alert("Không có dữ liệu để xuất!");
+            return;
+          }
+
+          const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `toeic-part5-data-${
+            new Date().toISOString().split("T")[0]
+          }.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+
+        importData(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              if (StorageManager.import(data)) {
+                alert("Import thành công! Trang sẽ được tải lại.");
+                location.reload();
+              } else {
+                alert("Lỗi khi import dữ liệu!");
+              }
+            } catch (error) {
+              alert("File không hợp lệ!");
+            }
+          };
+          reader.readAsText(file);
+        }
+
+        resetData() {
+          if (
+            confirm(
+              "Bạn có chắc muốn xóa tất cả dữ liệu? Hành động này không thể hoàn tác!"
+            )
+          ) {
+            if (StorageManager.reset()) {
+              alert("Đã reset thành công! Trang sẽ được tải lại.");
+              location.reload();
+            } else {
+              alert("Lỗi khi reset dữ liệu!");
+            }
+          }
+        }
+
+        saveData() {
+          StorageManager.save(this.state);
+        }
+      }
+
+      // Initialize the app when DOM is loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        new ToeicApp();
+      });
+    </script>
+  </body>
+</html>
