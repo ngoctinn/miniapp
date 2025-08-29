@@ -911,18 +911,64 @@
           if (!question) return;
 
           const lang = this.state.settings.language;
-          let content = `<p class="mb-2">${question.explanation[lang]}</p>`;
+          const explanationText = question.explanation[lang];
 
+          // Tách phần giải thích và phần dịch
+          let explanation = "";
+          let translation = "";
+
+          if (lang === "vi") {
+            // Với tiếng Việt, tách phần "Dịch:" từ phần giải thích
+            const parts = explanationText.split("Dịch:");
+            if (parts.length > 1) {
+              explanation = parts[0].trim();
+              translation = parts[1].trim();
+            } else {
+              explanation = explanationText;
+            }
+          } else {
+            // Với tiếng Anh, tách phần "Translation:" từ phần giải thích
+            const parts = explanationText.split("Translation:");
+            if (parts.length > 1) {
+              explanation = parts[0].trim();
+              translation = parts[1].trim();
+            } else {
+              explanation = explanationText;
+            }
+          }
+
+          let content = `<div class="space-y-3">`;
+
+          // Phần giải thích
+          if (explanation) {
+            content += `<p class="text-gray-800 leading-relaxed">${explanation}</p>`;
+          }
+
+          // Phần dịch (nếu có)
+          if (translation) {
+            content += `<div class="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+              <p class="text-sm text-blue-700 font-medium mb-1">📝 Dịch nghĩa:</p>
+              <p class="text-blue-800 italic leading-relaxed">${translation}</p>
+            </div>`;
+          }
+
+          // Phần phân tích các lựa chọn sai
           if (question.distractor_notes) {
-            content +=
-              '<div class="mt-3"><strong>Phân tích các lựa chọn:</strong><ul class="list-disc ml-5 mt-1">';
+            content += `<div class="mt-4">
+              <p class="font-semibold text-gray-800 mb-2">🔍 Phân tích các lựa chọn:</p>
+              <ul class="space-y-2">`;
             Object.entries(question.distractor_notes).forEach(
               ([option, note]) => {
-                content += `<li><strong>${option}:</strong> ${note}</li>`;
+                content += `<li class="flex items-start">
+                  <span class="font-medium text-red-600 mr-2">${option}:</span>
+                  <span class="text-gray-700 text-sm">${note}</span>
+                </li>`;
               }
             );
-            content += "</ul></div>";
+            content += `</ul></div>`;
           }
+
+          content += `</div>`;
 
           this.elements.explanationContent.innerHTML = content;
           this.elements.explanationPanel.classList.remove("hidden");
