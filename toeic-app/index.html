@@ -72,7 +72,12 @@
         </h1>
         <div class="flex justify-between items-center text-sm text-gray-600">
           <span id="progress">Câu 1/?</span>
-          <span id="score">Điểm: 0</span>
+          <div class="flex items-center gap-4">
+            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+              ⌨️ Phím tắt: 1-4/A-D để chọn, K/Enter để kiểm tra
+            </span>
+            <span id="score">Điểm: 0</span>
+          </div>
           <span id="study-time">Hôm nay: 0 phút</span>
         </div>
       </div>
@@ -133,6 +138,13 @@
               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium"
             >
               🚩 Flag
+            </button>
+            <button
+              id="help-btn"
+              class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium"
+              title="Hiển thị hướng dẫn phím tắt"
+            >
+              ❓ Help
             </button>
           </div>
         </div>
@@ -285,6 +297,145 @@
       </div>
     </div>
 
+    <!-- Help Modal -->
+    <div
+      id="help-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">
+          ⌨️ Hướng dẫn Phím tắt
+        </h2>
+
+        <div class="space-y-4">
+          <div class="bg-blue-50 p-4 rounded-lg">
+            <h3 class="font-semibold text-blue-800 mb-3">🎯 Chọn đáp án</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">1</kbd> hoặc
+                <kbd class="bg-gray-200 px-2 py-1 rounded">A</kbd> → Chọn đáp án
+                A
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">2</kbd> hoặc
+                <kbd class="bg-gray-200 px-2 py-1 rounded">B</kbd> → Chọn đáp án
+                B
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">3</kbd> hoặc
+                <kbd class="bg-gray-200 px-2 py-1 rounded">C</kbd> → Chọn đáp án
+                C
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">4</kbd> hoặc
+                <kbd class="bg-gray-200 px-2 py-1 rounded">D</kbd> → Chọn đáp án
+                D
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-green-50 p-4 rounded-lg">
+            <h3 class="font-semibold text-green-800 mb-3">⚡ Điều khiển</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">Enter</kbd>,
+                <kbd class="bg-gray-200 px-2 py-1 rounded">Space</kbd> hoặc
+                <kbd class="bg-gray-200 px-2 py-1 rounded">K</kbd> → Kiểm tra
+                đáp án
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">N</kbd> hoặc
+                <kbd class="bg-gray-200 px-2 py-1 rounded">→</kbd> → Câu tiếp
+                theo
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">P</kbd> hoặc
+                <kbd class="bg-gray-200 px-2 py-1 rounded">←</kbd> → Câu trước
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">H</kbd> → Hiển thị
+                gợi ý
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-purple-50 p-4 rounded-lg">
+            <h3 class="font-semibold text-purple-800 mb-3">🔧 Tính năng</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">E</kbd> → Toggle giải
+                thích
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">F</kbd> → Flag/Unflag
+                câu hỏi
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">Ctrl+S</kbd> → Mở cài
+                đặt
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">Escape</kbd> → Đóng
+                modal
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-orange-50 p-4 rounded-lg">
+            <h3 class="font-semibold text-orange-800 mb-3">
+              💾 Quản lý dữ liệu
+            </h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">Ctrl+X</kbd> → Export
+                dữ liệu
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">Ctrl+I</kbd> → Import
+                dữ liệu
+              </div>
+              <div>
+                <kbd class="bg-gray-200 px-2 py-1 rounded">Ctrl+R</kbd> → Reset
+                dữ liệu
+              </div>
+              <div class="text-gray-600">⚠️ Reset sẽ xóa tất cả dữ liệu</div>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="font-semibold text-gray-800 mb-2">💡 Mẹo sử dụng</h3>
+            <ul class="text-sm text-gray-600 space-y-1">
+              <li>• Phím tắt không hoạt động khi đang nhập liệu trong form</li>
+              <li>• Có thể dùng số (1-4) hoặc chữ (A-D) để chọn đáp án</li>
+              <li>
+                • Dùng <kbd class="bg-gray-200 px-1 rounded">Enter</kbd>,
+                <kbd class="bg-gray-200 px-1 rounded">Space</kbd> hoặc
+                <kbd class="bg-gray-200 px-1 rounded">K</kbd> để kiểm tra đáp án
+              </li>
+              <li>
+                • Nhấn <kbd class="bg-gray-200 px-1 rounded">?</kbd> để mở hướng
+                dẫn này
+              </li>
+              <li>
+                • Phím tắt với Ctrl chỉ hoạt động khi không có modal nào mở
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+          <button
+            id="close-help"
+            class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded transition-colors duration-200"
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-white border-t py-4 mt-8">
       <div class="max-w-7xl mx-auto px-4 flex flex-wrap gap-3 justify-center">
@@ -311,6 +462,13 @@
           class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
         >
           🔄 Reset
+        </button>
+        <button
+          id="test-keyboard-btn"
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded"
+          title="Test phím tắt"
+        >
+          ⌨️ Test Keys
         </button>
       </div>
       <input type="file" id="import-file" accept=".json" class="hidden" />
@@ -666,6 +824,7 @@
             hintBtn: document.getElementById("hint-btn"),
             explanationBtn: document.getElementById("explanation-btn"),
             flagBtn: document.getElementById("flag-btn"),
+            helpBtn: document.getElementById("help-btn"),
             explanationPanel: document.getElementById("explanation-panel"),
             explanationContent: document.getElementById("explanation-content"),
 
@@ -677,6 +836,7 @@
 
             // Settings modal
             settingsModal: document.getElementById("settings-modal"),
+            helpModal: document.getElementById("help-modal"),
             modeSelect: document.getElementById("mode-select"),
             difficultySelect: document.getElementById("difficulty-select"),
             highContrast: document.getElementById("high-contrast"),
@@ -688,6 +848,7 @@
             exportBtn: document.getElementById("export-btn"),
             importBtn: document.getElementById("import-btn"),
             resetBtn: document.getElementById("reset-btn"),
+            testKeyboardBtn: document.getElementById("test-keyboard-btn"),
             importFile: document.getElementById("import-file"),
           };
         }
@@ -732,6 +893,12 @@
           this.elements.flagBtn.addEventListener("click", () =>
             this.toggleFlag()
           );
+          this.elements.helpBtn.addEventListener("click", () =>
+            this.showHelp()
+          );
+          this.elements.testKeyboardBtn.addEventListener("click", () =>
+            this.testKeyboard()
+          );
 
           // Settings
           this.elements.settingsBtn.addEventListener("click", () =>
@@ -740,6 +907,9 @@
           document
             .getElementById("close-settings")
             .addEventListener("click", () => this.hideSettings());
+          document
+            .getElementById("close-help")
+            .addEventListener("click", () => this.hideHelp());
           document
             .getElementById("apply-settings")
             .addEventListener("click", () => this.applySettings());
@@ -765,6 +935,11 @@
           this.elements.settingsModal.addEventListener("click", (e) => {
             if (e.target === this.elements.settingsModal) {
               this.hideSettings();
+            }
+          });
+          this.elements.helpModal.addEventListener("click", (e) => {
+            if (e.target === this.elements.helpModal) {
+              this.hideHelp();
             }
           });
 
@@ -829,11 +1004,17 @@
             btn.classList.remove("bg-blue-100", "border-blue-500")
           );
 
-          // Highlight selected option
+          // Highlight selected option with animation
           buttonElement.classList.add("bg-blue-100", "border-blue-500");
+          buttonElement.style.transform = "scale(1.02)";
+          setTimeout(() => {
+            buttonElement.style.transform = "";
+          }, 150);
 
           this.state.selectedAnswer = option;
           this.elements.checkBtn.disabled = false;
+
+          console.log("Option selected:", option);
         }
 
         checkAnswer() {
@@ -997,10 +1178,114 @@
           this.saveData();
         }
 
+        showHelp() {
+          this.elements.helpModal.style.display = "flex";
+          this.elements.helpModal.classList.remove("hidden");
+        }
+
+        hideHelp() {
+          this.elements.helpModal.style.display = "none";
+          this.elements.helpModal.classList.add("hidden");
+        }
+
+        // Test keyboard shortcuts
+        testKeyboard() {
+          console.log("Testing keyboard shortcuts...");
+          alert(
+            "Phím tắt đang hoạt động! Mở Console (F12) để xem log chi tiết."
+          );
+        }
+
         handleKeyPress(e) {
-          if (this.elements.settingsModal.style.display !== "none") return;
+          // Debug: Log key press
+          console.log("Key pressed:", e.key, "Target:", e.target.tagName);
+
+          // Ignore if typing in input fields or other form elements
+          if (
+            e.target.tagName === "INPUT" ||
+            e.target.tagName === "SELECT" ||
+            e.target.tagName === "TEXTAREA" ||
+            e.target.contentEditable === "true"
+          ) {
+            console.log("Ignoring key press in input field");
+            return;
+          }
+
+          // Check if any modal is open
+          const settingsModalOpen =
+            this.elements.settingsModal &&
+            (this.elements.settingsModal.style.display === "flex" ||
+              this.elements.settingsModal.classList.contains("flex"));
+          const helpModalOpen =
+            this.elements.helpModal &&
+            (this.elements.helpModal.style.display === "flex" ||
+              this.elements.helpModal.classList.contains("flex"));
+
+          console.log(
+            "Modals open - Settings:",
+            settingsModalOpen,
+            "Help:",
+            helpModalOpen
+          );
+
+          // If settings modal is open, only handle Escape
+          if (settingsModalOpen) {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              this.hideSettings();
+            }
+            return;
+          }
+
+          // If help modal is open, only handle Escape
+          if (helpModalOpen) {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              this.hideHelp();
+            }
+            return;
+          }
+
+          // Prevent default for our handled keys
+          const handledKeys = [
+            "1",
+            "2",
+            "3",
+            "4",
+            "a",
+            "b",
+            "c",
+            "d",
+            "A",
+            "B",
+            "C",
+            "D",
+            "Enter",
+            " ",
+            "k",
+            "K",
+            "n",
+            "N",
+            "p",
+            "P",
+            "h",
+            "H",
+            "e",
+            "E",
+            "f",
+            "F",
+            "?",
+            "ArrowRight",
+            "ArrowLeft",
+          ];
+
+          if (handledKeys.includes(e.key)) {
+            e.preventDefault();
+            console.log("Handling key:", e.key);
+          }
 
           switch (e.key) {
+            // Answer selection (1-4 or A-D)
             case "1":
             case "2":
             case "3":
@@ -1014,28 +1299,159 @@
                 this.selectOption(option, button);
               }
               break;
+
+            // Alternative answer selection (A-D keys)
+            case "a":
+            case "A":
+              e.preventDefault();
+              if (!this.state.isAnswered) {
+                const aButton =
+                  this.elements.optionsContainer.querySelector(
+                    '[data-option="A"]'
+                  );
+                if (aButton) this.selectOption("A", aButton);
+              }
+              break;
+            case "b":
+            case "B":
+              e.preventDefault();
+              if (!this.state.isAnswered) {
+                const bButton =
+                  this.elements.optionsContainer.querySelector(
+                    '[data-option="B"]'
+                  );
+                if (bButton) this.selectOption("B", bButton);
+              }
+              break;
+            case "c":
+            case "C":
+              e.preventDefault();
+              if (!this.state.isAnswered) {
+                const cButton =
+                  this.elements.optionsContainer.querySelector(
+                    '[data-option="C"]'
+                  );
+                if (cButton) this.selectOption("C", cButton);
+              }
+              break;
+            case "d":
+            case "D":
+              e.preventDefault();
+              if (!this.state.isAnswered) {
+                const dButton =
+                  this.elements.optionsContainer.querySelector(
+                    '[data-option="D"]'
+                  );
+                if (dButton) this.selectOption("D", dButton);
+              }
+              break;
+
+            // Check answer (Enter, Space, or K)
             case "Enter":
+            case " ":
+            case "k":
+            case "K":
               e.preventDefault();
               if (!this.state.isAnswered && this.state.selectedAnswer) {
                 this.checkAnswer();
               }
               break;
+
+            // Next question
             case "n":
             case "N":
+            case "ArrowRight":
               e.preventDefault();
               if (this.state.isAnswered) {
                 this.nextQuestion();
               }
               break;
+
+            // Previous question
+            case "p":
+            case "P":
+            case "ArrowLeft":
+              e.preventDefault();
+              if (this.state.currentQuestionIndex > 0) {
+                this.state.currentQuestionIndex--;
+                this.state.selectedAnswer = null;
+                this.state.isAnswered = false;
+                this.state.usedHint = false;
+                this.state.questionStartTime = Date.now();
+                this.renderQuestion();
+                this.updateUI();
+              }
+              break;
+
+            // Show hint
             case "h":
             case "H":
               e.preventDefault();
               this.showHint();
               break;
+
+            // Toggle explanation
             case "e":
             case "E":
               e.preventDefault();
               this.toggleExplanation();
+              break;
+
+            // Flag/Unflag question
+            case "f":
+            case "F":
+              e.preventDefault();
+              this.toggleFlag();
+              break;
+
+            // Show help
+            case "?":
+              e.preventDefault();
+              this.showHelp();
+              break;
+
+            // Show settings
+            case "s":
+            case "S":
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                this.showSettings();
+              }
+              break;
+
+            // Reset data
+            case "r":
+            case "R":
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                this.resetData();
+              }
+              break;
+
+            // Export data
+            case "x":
+            case "X":
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                this.exportData();
+              }
+              break;
+
+            // Import data
+            case "i":
+            case "I":
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                this.elements.importFile.click();
+              }
+              break;
+
+            // Close modal (Escape)
+            case "Escape":
+              e.preventDefault();
+              if (this.elements.settingsModal.style.display !== "none") {
+                this.hideSettings();
+              }
               break;
           }
         }
