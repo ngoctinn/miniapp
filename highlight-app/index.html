@@ -44,17 +44,13 @@
         border: 2px solid transparent;
       }
       .color-swatch.active {
-        border-color: #fff;
-        transform: scale(1.1);
-      }
-      .slider-container {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 12px;
+        border-color: #3b82f6;
+        transform: scale(1.15);
+        box-shadow: 0 0 10px #3b82f6;
       }
       .drop-zone {
-        border: 2px dashed #94a3b8;
-        border-radius: 12px;
+        border: 2px dashed #cbd5e1;
+        border-radius: 1rem;
         transition: all 0.3s;
       }
       .drop-zone.dragover {
@@ -62,45 +58,57 @@
         background-color: rgba(59, 130, 246, 0.1);
       }
       input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
         background: transparent;
         cursor: pointer;
       }
-      input[type="range"]::-webkit-slider-track {
-        background: rgba(255, 255, 255, 0.2);
-        height: 4px;
-        border-radius: 2px;
+      input[type="range"]::-webkit-slider-runnable-track {
+        background: #475569;
+        height: 6px;
+        border-radius: 3px;
       }
       input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
         appearance: none;
+        margin-top: -7px;
         height: 20px;
         width: 20px;
         border-radius: 50%;
         background: #3b82f6;
         cursor: pointer;
-        border: 2px solid #fff;
+        border: 3px solid #f1f5f9;
+        transition: transform 0.2s;
+      }
+      input[type="range"]:hover::-webkit-slider-thumb {
+        transform: scale(1.1);
       }
     </style>
   </head>
-  <body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-6">
+  <body class="bg-slate-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
       <!-- Header -->
-      <header class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">🎯 Highlight App</h1>
-        <p class="text-gray-600">Làm nổi vùng quan trọng trên ảnh của bạn</p>
+      <header class="text-center mb-10">
+        <h1 class="text-4xl font-bold text-slate-800 mb-2">🎯 Highlight App</h1>
+        <p class="text-slate-600 text-lg">
+          Làm nổi bật vùng quan trọng trên ảnh của bạn một cách dễ dàng
+        </p>
       </header>
 
       <!-- Upload Zone -->
       <div
         id="uploadZone"
-        class="drop-zone bg-white p-8 text-center mb-6 cursor-pointer"
+        class="drop-zone bg-white/60 backdrop-blur-sm p-8 text-center mb-6 cursor-pointer rounded-2xl transition-all duration-300 hover:border-blue-500 hover:bg-white"
       >
         <div class="space-y-4">
           <div class="text-6xl">📸</div>
           <div>
-            <p class="text-lg font-medium text-gray-700 mb-2">
-              Kéo thả ảnh vào đây hoặc click để chọn
+            <p class="text-lg font-medium text-slate-700 mb-2">
+              Kéo thả ảnh vào đây hoặc
+              <span class="text-blue-600 font-semibold">nhấn để chọn</span>
             </p>
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-slate-500">
               Hỗ trợ PNG, JPEG, WebP (tối đa 30MP)
             </p>
           </div>
@@ -110,16 +118,20 @@
 
       <!-- Main Content -->
       <div id="mainContent" class="hidden">
-        <div class="grid lg:grid-cols-4 gap-6">
+        <div class="grid lg:grid-cols-12 gap-8">
           <!-- Toolbar -->
-          <div class="lg:col-span-1">
-            <div class="toolbar space-y-4">
+          <div class="lg:col-span-4 xl:col-span-3">
+            <div
+              class="toolbar bg-slate-900/80 backdrop-blur-lg border border-slate-700/50 rounded-2xl p-5 space-y-6 sticky top-6"
+            >
               <!-- Color Picker -->
-              <div class="text-white">
-                <h3 class="font-medium mb-3 text-sm uppercase tracking-wider">
-                  Màu khung
+              <div class="border-b border-slate-700 pb-6">
+                <h3
+                  class="font-medium mb-4 text-sm uppercase tracking-wider text-slate-400"
+                >
+                  Màu sắc
                 </h3>
-                <div class="flex gap-2 mb-3">
+                <div class="flex justify-between gap-2 mb-4">
                   <div
                     class="color-swatch active"
                     style="background-color: #3b82f6"
@@ -150,105 +162,209 @@
                   type="color"
                   id="customColor"
                   value="#3b82f6"
-                  class="w-full h-10 rounded-md cursor-pointer"
+                  class="w-full h-10 rounded-lg cursor-pointer border-0"
                 />
               </div>
 
-              <!-- Darkness Control -->
-              <div class="slider-container">
-                <label class="block text-white text-sm font-medium mb-2">
-                  Độ tối overlay: <span id="darknessValue">0.7</span>
-                </label>
-                <input
-                  type="range"
-                  id="darknessSlider"
-                  min="0"
-                  max="1"
-                  step="0.05"
-                  value="0.7"
-                  class="w-full"
-                />
+              <!-- Sliders -->
+              <div class="space-y-5 border-b border-slate-700 pb-6">
+                <h3
+                  class="font-medium mb-4 text-sm uppercase tracking-wider text-slate-400"
+                >
+                  Hiệu ứng
+                </h3>
+                <!-- Darkness & Blur -->
+                <div class="space-y-5">
+                  <div>
+                    <label
+                      class="block text-slate-300 text-sm font-medium mb-2"
+                    >
+                      Độ tối nền: <span id="darknessValue">0.7</span>
+                    </label>
+                    <input
+                      type="range"
+                      id="darknessSlider"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value="0.7"
+                      class="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-slate-300 text-sm font-medium mb-2"
+                    >
+                      Độ mờ: <span id="blurValue">0</span>px
+                    </label>
+                    <input
+                      type="range"
+                      id="blurSlider"
+                      min="0"
+                      max="10"
+                      step="0.5"
+                      value="0"
+                      class="w-full"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <!-- Blur Control -->
-              <div class="slider-container">
-                <label class="block text-white text-sm font-medium mb-2">
-                  Độ mờ: <span id="blurValue">0</span>px
-                </label>
-                <input
-                  type="range"
-                  id="blurSlider"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                  value="0"
-                  class="w-full"
-                />
-              </div>
-
-              <!-- Border Width -->
-              <div class="slider-container">
-                <label class="block text-white text-sm font-medium mb-2">
-                  Độ dày viền: <span id="borderWidthValue">2</span>px
-                </label>
-                <input
-                  type="range"
-                  id="borderWidthSlider"
-                  min="0"
-                  max="8"
-                  step="1"
-                  value="2"
-                  class="w-full"
-                />
-              </div>
-
-              <!-- Border Radius -->
-              <div class="slider-container">
-                <label class="block text-white text-sm font-medium mb-2">
-                  Bo góc: <span id="borderRadiusValue">10</span>px
-                </label>
-                <input
-                  type="range"
-                  id="borderRadiusSlider"
-                  min="0"
-                  max="50"
-                  step="1"
-                  value="10"
-                  class="w-full"
-                />
+              <div class="space-y-5 border-b border-slate-700 pb-6">
+                <h3
+                  class="font-medium mb-4 text-sm uppercase tracking-wider text-slate-400"
+                >
+                  Khung viền
+                </h3>
+                <!-- Border Width & Radius -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      class="block text-slate-300 text-sm font-medium mb-2"
+                    >
+                      Độ dày: <span id="borderWidthValue">2</span>px
+                    </label>
+                    <input
+                      type="range"
+                      id="borderWidthSlider"
+                      min="0"
+                      max="10"
+                      step="1"
+                      value="2"
+                      class="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-slate-300 text-sm font-medium mb-2"
+                    >
+                      Bo góc: <span id="borderRadiusValue">10</span>px
+                    </label>
+                    <input
+                      type="range"
+                      id="borderRadiusSlider"
+                      min="0"
+                      max="50"
+                      step="1"
+                      value="10"
+                      class="w-full"
+                    />
+                  </div>
+                </div>
               </div>
 
               <!-- Action Buttons -->
-              <div class="space-y-3 pt-4">
-                <button
-                  id="resetBtn"
-                  class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
-                >
-                  🔄 Reset
-                </button>
+              <div class="pt-2 space-y-4">
+                <div class="grid grid-cols-3 gap-2">
+                  <button
+                    id="undoBtn"
+                    class="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled
+                    title="Hoàn tác"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="lucide lucide-undo-2"
+                    >
+                      <path d="M9 14 4 9l5-5" />
+                      <path d="M4 9h10.5a8.5 8.5 0 1 1-8.5 8.5" />
+                    </svg>
+                  </button>
+                  <button
+                    id="redoBtn"
+                    class="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled
+                    title="Làm lại"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="lucide lucide-redo-2"
+                    >
+                      <path d="m15 14 5-5-5-5" />
+                      <path d="M20 9H9.5A8.5 8.5 0 0 0 1 17.5" />
+                    </svg>
+                  </button>
+                  <button
+                    id="resetBtn"
+                    class="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white py-2 px-3 rounded-lg transition-colors"
+                    title="Reset"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="lucide lucide-rotate-cw"
+                    >
+                      <path d="M21 2v6h-6" />
+                      <path
+                        d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                      />
+                    </svg>
+                  </button>
+                </div>
                 <button
                   id="exportBtn"
-                  class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled
                 >
-                  💾 Xuất ảnh (PNG)
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-download"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                  Xuất ảnh (PNG)
                 </button>
               </div>
             </div>
           </div>
 
           <!-- Canvas Area -->
-          <div class="lg:col-span-3">
-            <div class="bg-white rounded-lg shadow-sm p-4">
+          <div class="lg:col-span-8 xl:col-span-9">
+            <div
+              class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-sm p-4 border border-slate-200/80"
+            >
               <div class="canvas-container mx-auto" id="canvasContainer">
                 <canvas
                   id="canvas"
-                  class="max-w-full max-h-[80vh] object-contain border border-gray-200 rounded-lg cursor-crosshair"
+                  class="max-w-full max-h-[80vh] object-contain rounded-lg cursor-crosshair"
                 ></canvas>
                 <div id="selectionArea" class="selection-area hidden"></div>
               </div>
               <div
-                class="mt-4 text-center text-sm text-gray-500"
+                class="mt-4 text-center text-sm text-slate-500"
                 id="imageInfo"
               ></div>
             </div>
@@ -259,34 +375,40 @@
       <!-- Loading -->
       <div
         id="loadingOverlay"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+        class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden"
       >
-        <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+        <div
+          class="bg-white/80 backdrop-blur-lg p-6 rounded-2xl shadow-xl text-center"
+        >
           <div
-            class="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+            class="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
           ></div>
-          <p class="text-gray-700">Đang xử lý ảnh...</p>
+          <p class="text-slate-700 font-medium">Đang xử lý ảnh...</p>
         </div>
       </div>
 
       <!-- Warning Modal -->
       <div
         id="warningModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+        class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden"
       >
-        <div class="bg-white p-6 rounded-lg shadow-xl max-w-md mx-4">
+        <div
+          class="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl max-w-md mx-4"
+        >
           <div class="text-center">
-            <div class="text-4xl mb-4">⚠️</div>
-            <h3 class="text-lg font-semibold mb-2">Ảnh có kích thước lớn</h3>
-            <p class="text-gray-600 mb-4">
-              Ảnh của bạn có độ phân giải cao (>30MP). Ứng dụng sẽ dùng preview
-              để thao tác nhưng vẫn xuất ảnh ở độ phân giải gốc.
+            <div class="text-5xl mb-4">⚠️</div>
+            <h3 class="text-xl font-semibold mb-2 text-slate-800">
+              Ảnh có kích thước lớn
+            </h3>
+            <p class="text-slate-600 mb-6">
+              Ảnh của bạn có độ phân giải cao (&gt;30MP). Ứng dụng sẽ dùng bản
+              xem trước để thao tác nhưng vẫn xuất ảnh ở độ phân giải gốc.
             </p>
             <button
               id="continueBtn"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-semibold"
             >
-              Tiếp tục
+              Đã hiểu, tiếp tục
             </button>
           </div>
         </div>

@@ -13,9 +13,13 @@ class HighlightApp {
 
     // Selection state
     this.isSelecting = false;
-    this.hasSelection = false;
-    this.selection = { x: 0, y: 0, width: 0, height: 0 };
+    this.selections = [];
+    this.currentSelection = null;
     this.startPos = { x: 0, y: 0 };
+
+    // History for undo/redo
+    this.history = [];
+    this.historyIndex = -1;
 
     // Settings
     this.settings = {
@@ -45,6 +49,8 @@ class HighlightApp {
     this.resetBtn = document.getElementById("resetBtn");
     this.exportBtn = document.getElementById("exportBtn");
     this.continueBtn = document.getElementById("continueBtn");
+    this.undoBtn = document.getElementById("undoBtn");
+    this.redoBtn = document.getElementById("redoBtn");
 
     // Value display elements
     this.darknessValue = document.getElementById("darknessValue");
@@ -58,6 +64,7 @@ class HighlightApp {
   init() {
     this.setupEventListeners();
     this.setupDragDrop();
+    this.updateHistoryButtons();
   }
 
   setupEventListeners() {
@@ -71,6 +78,7 @@ class HighlightApp {
     this.canvas.addEventListener("mousedown", (e) => this.startSelection(e));
     this.canvas.addEventListener("mousemove", (e) => this.updateSelection(e));
     this.canvas.addEventListener("mouseup", () => this.endSelection());
+    this.canvas.addEventListener("mouseleave", () => this.endSelection(true));
 
     // Touch events for mobile
     this.canvas.addEventListener("touchstart", (e) => {
@@ -113,28 +121,26 @@ class HighlightApp {
     this.darknessSlider.addEventListener("input", (e) => {
       this.settings.darkness = parseFloat(e.target.value);
       this.darknessValue.textContent = this.settings.darkness;
-      this.render();
+      this.updateSettingsAndHistory();
     });
 
     this.blurSlider.addEventListener("input", (e) => {
       this.settings.blur = parseFloat(e.target.value);
       this.blurValue.textContent = this.settings.blur;
-      this.render();
+      this.updateSettingsAndHistory();
     });
 
     this.borderWidthSlider.addEventListener("input", (e) => {
       this.settings.borderWidth = parseInt(e.target.value);
       this.borderWidthValue.textContent =
-        this.settings.borderWidth === 0
-          ? "Không viền"
-          : this.settings.borderWidth;
-      this.render();
+        this.settings.borderWidth === 0 ? "0" : this.settings.borderWidth;
+      this.updateSettingsAndHistory();
     });
 
     this.borderRadiusSlider.addEventListener("input", (e) => {
       this.settings.borderRadius = parseInt(e.target.value);
       this.borderRadiusValue.textContent = this.settings.borderRadius;
-      this.render();
+      this.updateSettingsAndHistory();
     });
 
     // Buttons
@@ -143,6 +149,8 @@ class HighlightApp {
     this.continueBtn.addEventListener("click", () =>
       this.warningModal.classList.add("hidden")
     );
+    this.undoBtn.addEventListener("click", () => this.undo());
+    this.redoBtn.addEventListener("click", () => this.redo());
   }
 
   setupDragDrop() {
@@ -420,7 +428,15 @@ class HighlightApp {
 
     this.isSelecting = true;
     this.startPos = { x, y };
-    this.selection = { x, y, width: 0, height: 0 };
+    this.currentSelection = {
+      x,
+      y,
+      width: 0,
+      height: 0,
+      borderColor: this.settings.borderColor,
+      borderWidth: this.settings.borderWidth,
+      borderRadius: this.settings.borderRadius,
+    };
 
     this.selectionArea.classList.remove("hidden");
     this.updateSelectionArea();
@@ -433,86 +449,76 @@ class HighlightApp {
     const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
 
-    this.selection = {
-      x: Math.min(this.startPos.x, currentX),
-      y: Math.min(this.startPos.y, currentY),
-      width: Math.abs(currentX - this.startPos.x),
-      height: Math.abs(currentY - this.startPos.y),
-    };
+    this.currentSelection.x = Math.min(this.startPos.x, currentX);
+    this.currentSelection.y = Math.min(this.startPos.y, currentY);
+    this.currentSelection.width = Math.abs(currentX - this.startPos.x);
+    this.currentSelection.height = Math.abs(currentY - this.startPos.y);
 
     this.updateSelectionArea();
+    this.render(); // Re-render to show the temporary selection box
   }
 
-  endSelection() {
+  endSelection(isMouseLeave = false) {
     if (!this.isSelecting) return;
 
     this.isSelecting = false;
+    this.selectionArea.classList.add("hidden");
+
+    if (isMouseLeave && !this.currentSelection) {
+      this.render();
+      return;
+    }
 
     // Only keep selection if it has meaningful size
-    if (this.selection.width > 10 && this.selection.height > 10) {
-      this.hasSelection = true;
-      this.exportBtn.disabled = false;
-      this.render();
-    } else {
-      this.clearSelection();
+    if (
+      this.currentSelection &&
+      this.currentSelection.width > 10 &&
+      this.currentSelection.height > 10
+    ) {
+      this.selections.push(this.currentSelection);
+      this.saveState();
     }
+
+    this.currentSelection = null;
+    this.render();
   }
 
-  clearSelection() {
-    this.hasSelection = false;
-    this.selection = { x: 0, y: 0, width: 0, height: 0 };
-    this.selectionArea.classList.add("hidden");
-    this.exportBtn.disabled = true;
+  clearSelections() {
+    this.selections = [];
+    this.saveState();
     this.render();
   }
 
   updateSelectionArea() {
-    if (!this.hasSelection && !this.isSelecting) return;
-
-    const borderWidth = this.settings.borderWidth;
-    const borderRadius = this.settings.borderRadius;
-
-    // If borderWidth is 0, hide the selection area border
-    if (borderWidth === 0) {
-      this.selectionArea.style.display = "none";
+    if (!this.currentSelection) {
+      this.selectionArea.classList.add("hidden");
       return;
     }
 
-    // Show the selection area with border
-    this.selectionArea.style.display = "block";
-    this.selectionArea.style.left = this.selection.x - borderWidth + "px";
-    this.selectionArea.style.top = this.selection.y - borderWidth + "px";
-    this.selectionArea.style.width =
-      this.selection.width + borderWidth * 2 + "px";
-    this.selectionArea.style.height =
-      this.selection.height + borderWidth * 2 + "px";
+    const { x, y, width, height, borderWidth, borderColor, borderRadius } =
+      this.currentSelection;
+
+    this.selectionArea.classList.remove("hidden");
+    this.selectionArea.style.left = x - borderWidth + "px";
+    this.selectionArea.style.top = y - borderWidth + "px";
+    this.selectionArea.style.width = width + borderWidth * 2 + "px";
+    this.selectionArea.style.height = height + borderWidth * 2 + "px";
     this.selectionArea.style.borderWidth = borderWidth + "px";
-    this.selectionArea.style.borderColor = this.settings.borderColor;
+    this.selectionArea.style.borderColor = borderColor;
     this.selectionArea.style.borderRadius = borderRadius + "px";
   }
 
   render() {
     if (!this.originalImage) {
-      console.log("No original image to render");
       return;
     }
 
-    console.log("Rendering image...");
-
     // Clear canvas
-    this.ctx.clearRect(
-      0,
-      0,
-      this.canvas.width / this.canvasScale,
-      this.canvas.height / this.canvasScale
-    );
-
-    // Draw original image
     const displayWidth = this.originalImage.width * this.imageScale;
     const displayHeight = this.originalImage.height * this.imageScale;
+    this.ctx.clearRect(0, 0, displayWidth, displayHeight);
 
-    console.log("Display size:", displayWidth, "x", displayHeight);
-
+    // Draw original image
     this.ctx.drawImage(
       this.originalImageBitmap,
       0,
@@ -521,36 +527,40 @@ class HighlightApp {
       displayHeight
     );
 
-    // Apply highlight effect if selection exists
-    if (this.hasSelection) {
-      this.applyHighlightEffect();
+    // Apply highlight effect
+    this.applyHighlightEffect();
+
+    // Draw all committed selections' borders
+    this.drawSelectionBorders();
+
+    // Draw the current, temporary selection box
+    if (this.isSelecting && this.currentSelection) {
+      this.drawSelectionBorders([this.currentSelection]);
     }
 
-    // Update selection area appearance
-    this.updateSelectionArea();
+    this.exportBtn.disabled = this.selections.length === 0;
   }
 
   applyHighlightEffect() {
-    const { x, y, width, height } = this.selection;
     const { darkness, blur } = this.settings;
 
-    // Save context
+    if (this.selections.length === 0) return;
+
     this.ctx.save();
 
-    // Create a mask for the selection area
+    // Create a mask for all selection areas
     this.ctx.beginPath();
-    const radius = this.settings.borderRadius;
-    this.ctx.roundRect(x, y, width, height, radius);
+    this.selections.forEach((sel) => {
+      this.ctx.roundRect(sel.x, sel.y, sel.width, sel.height, sel.borderRadius);
+    });
 
-    // Invert the path to create overlay everywhere EXCEPT the selection
+    // Invert the path to create overlay everywhere EXCEPT the selections
     this.ctx.rect(
       0,
       0,
       this.canvas.width / this.canvasScale,
       this.canvas.height / this.canvasScale
     );
-
-    // Use even-odd rule to create a "hole" in the overlay
     this.ctx.clip("evenodd");
 
     // Apply blur if needed
@@ -558,7 +568,7 @@ class HighlightApp {
       this.ctx.filter = `blur(${blur}px)`;
     }
 
-    // Fill with dark overlay (everywhere except the clipped selection area)
+    // Fill with dark overlay
     this.ctx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
     this.ctx.fillRect(
       0,
@@ -567,7 +577,26 @@ class HighlightApp {
       this.canvas.height / this.canvasScale
     );
 
-    // Restore context
+    this.ctx.restore();
+  }
+
+  drawSelectionBorders(selections = this.selections) {
+    this.ctx.save();
+    selections.forEach((sel) => {
+      if (sel.borderWidth > 0) {
+        this.ctx.strokeStyle = sel.borderColor;
+        this.ctx.lineWidth = sel.borderWidth;
+        this.ctx.beginPath();
+        this.ctx.roundRect(
+          sel.x,
+          sel.y,
+          sel.width,
+          sel.height,
+          sel.borderRadius
+        );
+        this.ctx.stroke();
+      }
+    });
     this.ctx.restore();
   }
 
@@ -578,8 +607,6 @@ class HighlightApp {
     const color = swatch.dataset.color;
     this.settings.borderColor = color;
     this.customColor.value = color;
-
-    this.render();
   }
 
   updateColorSwatches() {
@@ -593,10 +620,9 @@ class HighlightApp {
 
   reset() {
     // Clear selection state
-    this.hasSelection = false;
-    this.selection = { x: 0, y: 0, width: 0, height: 0 };
+    this.selections = [];
+    this.currentSelection = null;
     this.selectionArea.classList.add("hidden");
-    this.exportBtn.disabled = true;
 
     // Reset settings
     this.settings = {
@@ -608,6 +634,41 @@ class HighlightApp {
     };
 
     // Reset UI controls
+    this.updateUIFromState();
+    this.saveState(); // Save the initial (reset) state
+    this.render();
+  }
+
+  updateSettingsAndHistory() {
+    this.saveState();
+    this.render();
+  }
+
+  saveState() {
+    // Create a deep copy of the current state
+    const state = {
+      selections: JSON.parse(JSON.stringify(this.selections)),
+      settings: JSON.parse(JSON.stringify(this.settings)),
+    };
+
+    // If we are not at the end of history, truncate it
+    if (this.historyIndex < this.history.length - 1) {
+      this.history = this.history.slice(0, this.historyIndex + 1);
+    }
+
+    this.history.push(state);
+    this.historyIndex++;
+    this.updateHistoryButtons();
+  }
+
+  loadState(state) {
+    this.selections = JSON.parse(JSON.stringify(state.selections));
+    this.settings = JSON.parse(JSON.stringify(state.settings));
+    this.updateUIFromState();
+    this.render();
+  }
+
+  updateUIFromState() {
     this.darknessSlider.value = this.settings.darkness;
     this.darknessValue.textContent = this.settings.darkness;
     this.blurSlider.value = this.settings.blur;
@@ -620,13 +681,32 @@ class HighlightApp {
     this.borderRadiusSlider.value = this.settings.borderRadius;
     this.borderRadiusValue.textContent = this.settings.borderRadius;
     this.customColor.value = this.settings.borderColor;
-
     this.updateColorSwatches();
-    this.render();
+  }
+
+  undo() {
+    if (this.historyIndex > 0) {
+      this.historyIndex--;
+      this.loadState(this.history[this.historyIndex]);
+      this.updateHistoryButtons();
+    }
+  }
+
+  redo() {
+    if (this.historyIndex < this.history.length - 1) {
+      this.historyIndex++;
+      this.loadState(this.history[this.historyIndex]);
+      this.updateHistoryButtons();
+    }
+  }
+
+  updateHistoryButtons() {
+    this.undoBtn.disabled = this.historyIndex <= 0;
+    this.redoBtn.disabled = this.historyIndex >= this.history.length - 1;
   }
 
   async exportImage() {
-    if (!this.originalImage || !this.hasSelection) return;
+    if (!this.originalImage || this.selections.length === 0) return;
 
     this.showLoading(true);
 
@@ -645,33 +725,33 @@ class HighlightApp {
       // Draw original image
       exportCtx.drawImage(this.originalImage, 0, 0);
 
-      // Calculate selection in original image coordinates
+      // Calculate selections in original image coordinates
       const scaleToOriginal = 1 / this.imageScale;
-      const originalSelection = {
-        x: this.selection.x * scaleToOriginal,
-        y: this.selection.y * scaleToOriginal,
-        width: this.selection.width * scaleToOriginal,
-        height: this.selection.height * scaleToOriginal,
-      };
+      const originalSelections = this.selections.map((sel) => ({
+        x: sel.x * scaleToOriginal,
+        y: sel.y * scaleToOriginal,
+        width: sel.width * scaleToOriginal,
+        height: sel.height * scaleToOriginal,
+        borderWidth: sel.borderWidth * scaleToOriginal,
+        borderRadius: sel.borderRadius * scaleToOriginal,
+        borderColor: sel.borderColor,
+      }));
 
       // Apply highlight effect
       exportCtx.save();
 
-      // Create a mask for the selection area using even-odd rule
+      // Create a mask for the selection areas
       exportCtx.beginPath();
-      const scaledRadius = this.settings.borderRadius * scaleToOriginal;
-      exportCtx.roundRect(
-        originalSelection.x,
-        originalSelection.y,
-        originalSelection.width,
-        originalSelection.height,
-        scaledRadius
-      );
-
-      // Add outer rectangle to create "hole" effect
+      originalSelections.forEach((sel) => {
+        exportCtx.roundRect(
+          sel.x,
+          sel.y,
+          sel.width,
+          sel.height,
+          sel.borderRadius
+        );
+      });
       exportCtx.rect(0, 0, exportCanvas.width, exportCanvas.height);
-
-      // Use even-odd rule to create overlay everywhere except selection
       exportCtx.clip("evenodd");
 
       // Apply blur if needed
@@ -680,10 +760,29 @@ class HighlightApp {
         exportCtx.filter = `blur(${scaledBlur}px)`;
       }
 
-      // Fill with dark overlay (everywhere except the clipped selection area)
+      // Fill with dark overlay
       exportCtx.fillStyle = `rgba(0, 0, 0, ${this.settings.darkness})`;
       exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
+      exportCtx.restore();
+
+      // Draw borders on top
+      exportCtx.save();
+      originalSelections.forEach((sel) => {
+        if (sel.borderWidth > 0) {
+          exportCtx.strokeStyle = sel.borderColor;
+          exportCtx.lineWidth = sel.borderWidth;
+          exportCtx.beginPath();
+          exportCtx.roundRect(
+            sel.x,
+            sel.y,
+            sel.width,
+            sel.height,
+            sel.borderRadius
+          );
+          exportCtx.stroke();
+        }
+      });
       exportCtx.restore();
 
       // Export as PNG
