@@ -47,7 +47,7 @@ toeic-app/
 
 ### Màn hình chính
 
-![Màn hình chính](toeic-app\image.png)
+![Màn hình chính](image.png)
 
 _Màn hình chính hiển thị câu hỏi TOEIC Part 5 với 4 lựa chọn đáp án, thanh tiến trình và các nút điều khiển._
 
